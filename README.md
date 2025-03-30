@@ -1,11 +1,5 @@
 # shell
 
-Repositorio para el esqueleto del [TP: shell](https://fisop.github.io/website/tps/shell) del curso Mendez-Fresia de **Sistemas Operativos (7508) - FIUBA**
-
-## Respuestas teóricas
-
-Utilizar el archivo `shell.md` provisto en el repositorio
-
 ## Compilar
 
 ```bash
