@@ -110,8 +110,6 @@ exec_cmd(struct cmd *cmd)
 	switch (cmd->type) {
 	case EXEC:
 		// spawns a command
-		//
-		printf_debug("Enter: %i -> %s", cmd->type, cmd->scmd);
 		exec_cmd = (struct execcmd*) cmd;
 		execute_cmd(exec_cmd);
 		free_command(cmd);
