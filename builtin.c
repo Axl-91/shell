@@ -1,4 +1,5 @@
 #include "builtin.h"
+#include "utils.h"
 
 // returns true if the 'exit' call
 // should be performed
@@ -7,9 +8,8 @@
 int
 exit_shell(char *cmd)
 {
-	// Your code here
-
-	return 0;
+	if (strcmp(cmd, "exit") != 0) return 0;
+	return 1;
 }
 
 // returns true if "chdir" was performed

@@ -1,4 +1,7 @@
 #include "parsing.h"
+#include "utils.h"
+#include <stdlib.h>
+#include <string.h>
 
 // parses an argument of the command stream input
 static char *
@@ -101,8 +104,16 @@ parse_environ_var(struct execcmd *c, char *arg)
 static char *
 expand_environ_var(char *arg)
 {
-	// Your code here
-
+	if (arg[0] == '$'){
+		char* env_var = getenv(arg+1);
+		if (!env_var) {
+			arg = (char *) realloc(arg, 1);
+			strcpy(arg, "");
+		} else {
+			arg = (char *) realloc(arg, strlen(env_var) + 1);
+			strcpy(arg, env_var);
+		}
+	}
 	return arg;
 }
 
