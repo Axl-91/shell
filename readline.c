@@ -14,7 +14,7 @@ read_line(const char *prompt)
 
 #ifndef SHELL_NO_INTERACTIVE
 	if (isatty(1)) {
-		fprintf(stdout, "%s %s %s\n", COLOR_RED, prompt, COLOR_RESET);
+		fprintf(stdout, "%s → %s %s\n", COLOR_RED, prompt, COLOR_RESET);
 		fprintf(stdout, "%s", "$ ");
 	}
 #endif

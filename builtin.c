@@ -29,7 +29,7 @@ change_dir(char *path)
 	} else {
 		char path[PRMTLEN] = { 0 };
 		getcwd(path, sizeof(path));
-		snprintf(prompt, sizeof(prompt), "(%s)", path);
+		snprintf(prompt, sizeof(prompt), "%s", path);
 	}
 }
 

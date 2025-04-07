@@ -28,7 +28,7 @@ init_shell()
 		snprintf(buf, sizeof buf, "cannot cd to %s ", home);
 		perror(buf);
 	} else {
-		snprintf(prompt, sizeof prompt, "(%s)", home);
+		snprintf(prompt, sizeof prompt, "%s", home);
 	}
 }
 
