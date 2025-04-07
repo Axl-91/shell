@@ -19,7 +19,7 @@ exit_shell(char *cmd)
 }
 
 static void
-change_dir(char* path)
+change_dir(char *path)
 {
 	char buf[BUFLEN] = { 0 };
 
@@ -54,11 +54,11 @@ cd(char *cmd)
 		return true;
 	}
 
-	char* cd_sub_str = strstr(cmd, "cd");
+	char *cd_sub_str = strstr(cmd, "cd");
 	int pos_cd = cd_sub_str - cmd;
 
 	if (pos_cd == 0 && strlen(cmd) > 3) {
-		change_dir(cmd+3);
+		change_dir(cmd + 3);
 		return true;
 	}
 	return false;

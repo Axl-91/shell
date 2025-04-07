@@ -112,8 +112,9 @@ expand_environ_var(char *arg)
 			if (arg[1] == '?' && arg[2] == '\0') {
 				char status_str[255];
 				sprintf(status_str, "%d", status);
-				 
-				arg = (char *) realloc(arg, strlen(status_str) + 1);
+
+				arg = (char *) realloc(arg,
+				                       strlen(status_str) + 1);
 				strcpy(arg, status_str);
 			} else {
 				arg = (char *) realloc(arg, 1);
