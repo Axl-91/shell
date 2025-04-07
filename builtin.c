@@ -3,6 +3,7 @@
 #include "utils.h"
 #include <linux/limits.h>
 #include <stdbool.h>
+#include <string.h>
 #include <unistd.h>
 
 // returns true if the 'exit' call
@@ -15,6 +16,21 @@ exit_shell(char *cmd)
 	if (strcmp(cmd, "exit") == 0)
 		return true;
 	return false;
+}
+
+static void
+change_dir(char* path)
+{
+	char buf[BUFLEN] = { 0 };
+
+	if (chdir(path) < 0) {
+		snprintf(buf, sizeof buf, "cannot cd to %s ", path);
+		perror(buf);
+	} else {
+		char path[PRMTLEN] = { 0 };
+		getcwd(path, sizeof(path));
+		snprintf(prompt, sizeof(prompt), "(%s)", path);
+	}
 }
 
 // returns true if "chdir" was performed
@@ -32,9 +48,20 @@ exit_shell(char *cmd)
 int
 cd(char *cmd)
 {
-	// Your code here
+	if (strcmp(cmd, "cd") == 0) {
+		char *home = getenv("HOME");
+		change_dir(home);
+		return true;
+	}
 
-	return 0;
+	char* cd_sub_str = strstr(cmd, "cd");
+	int pos_cd = cd_sub_str - cmd;
+
+	if (pos_cd == 0 && strlen(cmd) > 3) {
+		change_dir(cmd+3);
+		return true;
+	}
+	return false;
 }
 
 // returns true if 'pwd' was invoked
