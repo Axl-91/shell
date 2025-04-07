@@ -48,19 +48,23 @@ change_dir(char *path)
 int
 cd(char *cmd)
 {
-	if (strcmp(cmd, "cd") == 0) {
-		char *home = getenv("HOME");
-		change_dir(home);
+	char *cmd_aux = strdup(cmd);
+	char *token = strtok(cmd_aux, " ");
+	char *new_path = getenv("HOME");
+
+	if (strcmp(token, "cd") == 0) {
+		token = strtok(NULL, " ");
+
+		if (token) {
+			new_path = token;
+		}
+		change_dir(new_path);
+
+		free(cmd_aux);
 		return true;
 	}
 
-	char *cd_sub_str = strstr(cmd, "cd");
-	int pos_cd = cd_sub_str - cmd;
-
-	if (pos_cd == 0 && strlen(cmd) > 3) {
-		change_dir(cmd + 3);
-		return true;
-	}
+	free(cmd_aux);
 	return false;
 }
 
