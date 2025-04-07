@@ -1,5 +1,9 @@
 #include "builtin.h"
+#include "defs.h"
 #include "utils.h"
+#include <linux/limits.h>
+#include <stdbool.h>
+#include <unistd.h>
 
 // returns true if the 'exit' call
 // should be performed
@@ -8,8 +12,9 @@
 int
 exit_shell(char *cmd)
 {
-	if (strcmp(cmd, "exit") != 0) return 0;
-	return 1;
+	if (strcmp(cmd, "exit") == 0)
+		return true;
+	return false;
 }
 
 // returns true if "chdir" was performed
@@ -40,9 +45,14 @@ cd(char *cmd)
 int
 pwd(char *cmd)
 {
-	// Your code here
+	char path_buff[PATH_MAX] = { END_STRING };
+	if (strcmp(cmd, "pwd") == 0) {
+		getcwd(path_buff, PATH_MAX);
+		printf("%s\n", path_buff);
 
-	return 0;
+		return true;
+	}
+	return false;
 }
 
 // returns true if `history` was invoked

@@ -1,5 +1,7 @@
 #include "parsing.h"
+#include "printstatus.h"
 #include "utils.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -104,11 +106,19 @@ parse_environ_var(struct execcmd *c, char *arg)
 static char *
 expand_environ_var(char *arg)
 {
-	if (arg[0] == '$'){
-		char* env_var = getenv(arg+1);
+	if (arg[0] == '$') {
+		char *env_var = getenv(arg + 1);
 		if (!env_var) {
-			arg = (char *) realloc(arg, 1);
-			strcpy(arg, "");
+			if (arg[1] == '?' && arg[2] == '\0') {
+				char status_str[255];
+				sprintf(status_str, "%d", status);
+				 
+				arg = (char *) realloc(arg, strlen(status_str) + 1);
+				strcpy(arg, status_str);
+			} else {
+				arg = (char *) realloc(arg, 1);
+				strcpy(arg, "");
+			}
 		} else {
 			arg = (char *) realloc(arg, strlen(env_var) + 1);
 			strcpy(arg, env_var);
@@ -144,6 +154,11 @@ parse_exec(char *buf_cmd)
 			continue;
 
 		tok = expand_environ_var(tok);
+
+		if (strcmp(tok, "") == 0) {
+			free(tok);
+			continue;
+		}
 
 		c->argv[argc++] = tok;
 	}

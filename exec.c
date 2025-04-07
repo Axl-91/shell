@@ -2,6 +2,9 @@
 #include "defs.h"
 #include "parsing.h"
 #include "printstatus.h"
+#include "utils.h"
+#include <linux/limits.h>
+#include <stdlib.h>
 
 // sets "key" with the key part of "arg"
 // and null-terminates it
@@ -51,7 +54,16 @@ get_environ_value(char *arg, char *value, int idx)
 static void
 set_environ_vars(char **eargv, int eargc)
 {
-	// Your code here
+	char key[1024];
+	char value[1024];
+
+	for (int i = 0; i < eargc; i++) {
+		get_environ_key(eargv[i], key);
+		int idx = block_contains(eargv[i], '=');
+		get_environ_value(eargv[i], value, idx);
+
+		setenv(key, value, 1);
+	}
 }
 
 // opens the file in which the stdin/stdout/stderr
@@ -79,6 +91,8 @@ open_redir_fd(char *file, int flags)
 void
 execute_cmd(struct execcmd *exec_cmd)
 {
+	set_environ_vars(exec_cmd->eargv, exec_cmd->eargc);
+
 	if (execvp(exec_cmd->argv[0], exec_cmd->argv) == -1) {
 		bool is_command = exec_cmd->scmd[0] != '.';
 		free_command((struct cmd *) exec_cmd);
@@ -111,6 +125,26 @@ execute_redir(char *file, int old_fd, int flags)
 	return 0;
 }
 
+// Get position of substring or -1 if the subtring doesn't belongs
+static int
+get_pos_substring(char *string, char *substring)
+{
+	char *pos_s = strstr(string, substring);
+	if (pos_s != NULL) {
+		return (int) (pos_s - string);
+	}
+	return -1;
+}
+
+static bool
+is_err_redir_first(char *command_str)
+{
+	int err_pos = get_pos_substring(command_str, "2>");
+	int out_pos = get_pos_substring(command_str, " >");
+
+	return err_pos < out_pos;
+}
+
 void
 redirect_fds(struct execcmd *redir_cmd)
 {
@@ -122,14 +156,6 @@ redirect_fds(struct execcmd *redir_cmd)
 	// Flags for error files (write only, create if not exist, close on exec).
 	int err_flags = O_WRONLY | O_CREAT | O_CLOEXEC;
 
-	// There is a redirection for stdout
-	if (strlen(redir_cmd->out_file) > 0) {
-		file = redir_cmd->out_file;
-		if (execute_redir(file, STDOUT_FILENO, out_flags) == -1) {
-			free_command((struct cmd *) redir_cmd);
-			exit(EXIT_FAILURE);
-		}
-	}
 	// There is a redirection for stdin
 	if (strlen(redir_cmd->in_file) > 0) {
 		file = redir_cmd->in_file;
@@ -138,17 +164,42 @@ redirect_fds(struct execcmd *redir_cmd)
 			exit(EXIT_FAILURE);
 		}
 	}
-	// There is a redirection for stderr
-	if (strlen(redir_cmd->err_file) > 0) {
-		file = redir_cmd->err_file;
-		if (execute_redir(file, STDERR_FILENO, err_flags) == -1) {
+
+	if (is_err_redir_first(redir_cmd->scmd)) {
+		// There is a redirection for stderr
+		if (strlen(redir_cmd->err_file) > 0) {
+			file = redir_cmd->err_file;
+			if (execute_redir(file, STDERR_FILENO, err_flags) == -1) {
+				free_command((struct cmd *) redir_cmd);
+				exit(EXIT_FAILURE);
+			}
+		}
+	}
+
+	// There is a redirection for stdout
+	if (strlen(redir_cmd->out_file) > 0) {
+		file = redir_cmd->out_file;
+		if (execute_redir(file, STDOUT_FILENO, out_flags) == -1) {
 			free_command((struct cmd *) redir_cmd);
 			exit(EXIT_FAILURE);
 		}
 	}
+
+	if (!is_err_redir_first(redir_cmd->scmd)) {
+		// There is a redirection for stderr
+		if (strlen(redir_cmd->err_file) > 0) {
+			file = redir_cmd->err_file;
+			if (execute_redir(file, STDERR_FILENO, err_flags) == -1) {
+				free_command((struct cmd *) redir_cmd);
+				exit(EXIT_FAILURE);
+			}
+		}
+	}
 }
 
-int handle_pipes(struct pipecmd *pipe_cmd) {
+int
+handle_pipes(struct pipecmd *pipe_cmd)
+{
 	int fds[2];
 	pipe(fds);
 
@@ -159,7 +210,7 @@ int handle_pipes(struct pipecmd *pipe_cmd) {
 		dup2(fds[WRITE], STDOUT_FILENO);
 		close(fds[WRITE]);
 		struct cmd *left_cmd = pipe_cmd->leftcmd;
-		
+
 		free_command(pipe_cmd->rightcmd);
 		free(pipe_cmd);
 
@@ -178,10 +229,11 @@ int handle_pipes(struct pipecmd *pipe_cmd) {
 
 		free_command((struct cmd *) pipe_cmd);
 
-		if (!is_pipe){
+		if (!is_pipe) {
 			exec_cmd(new_right_cmd);
 		} else {
-			struct pipecmd* new_pipe = (struct pipecmd *) new_right_cmd;
+			struct pipecmd *new_pipe =
+			        (struct pipecmd *) new_right_cmd;
 			int exit_status = handle_pipes(new_pipe);
 			free_command(new_right_cmd);
 			exit(exit_status);
@@ -193,7 +245,7 @@ int handle_pipes(struct pipecmd *pipe_cmd) {
 	free_command(new_right_cmd);
 
 	int exit_status = EXIT_SUCCESS;
-		
+
 	if (waitpid(pid_left, &status, 0) != -1) {
 		print_status_info(pipe_cmd->leftcmd);
 		if (WEXITSTATUS(status) == 1) {
@@ -201,7 +253,7 @@ int handle_pipes(struct pipecmd *pipe_cmd) {
 		}
 	}
 
-	if (waitpid(pid_right, &status, 0) != -1 ) {
+	if (waitpid(pid_right, &status, 0) != -1) {
 		if (!is_pipe) {
 			print_status_info(pipe_cmd->rightcmd);
 		}
