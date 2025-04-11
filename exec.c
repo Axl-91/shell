@@ -2,6 +2,7 @@
 #include "defs.h"
 #include "parsing.h"
 #include "printstatus.h"
+#include "types.h"
 #include "utils.h"
 #include <linux/limits.h>
 #include <stdlib.h>
@@ -290,10 +291,9 @@ exec_cmd(struct cmd *cmd)
 
 	case BACK: {
 		// runs a command in background
-		//
-		// Your code here
-		printf("Background process are not yet implemented\n");
-		_exit(-1);
+		back_cmd = (struct backcmd *) cmd;
+		execute_cmd((struct execcmd *) back_cmd->c);
+		free(back_cmd);
 		break;
 	}
 

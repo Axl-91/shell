@@ -1,4 +1,7 @@
 #include "runcmd.h"
+#include "defs.h"
+#include "printstatus.h"
+#include <unistd.h>
 
 int status = 0;
 struct cmd *parsed_pipe;
@@ -41,6 +44,8 @@ run_cmd(char *cmd)
 		// so it can be freed later
 		if (parsed->type == PIPE)
 			parsed_pipe = parsed;
+		if (parsed->type != BACK)
+			setpgid(0, 0);
 
 		exec_cmd(parsed);
 	}
@@ -54,13 +59,14 @@ run_cmd(char *cmd)
 	//		going to be run in the 'back'
 	// - print info about it with
 	// 	'print_back_info()'
-	//
-	// Your code here
+	if (parsed->type == BACK) {
+		print_back_info(parsed);
+	} else {
+		// waits for the process to finish
+		waitpid(p, &status, 0);
 
-	// waits for the process to finish
-	waitpid(p, &status, 0);
-
-	print_status_info(parsed);
+		print_status_info(parsed);
+	}
 
 	free_command(parsed);
 
