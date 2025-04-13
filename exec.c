@@ -1,11 +1,13 @@
 #include "exec.h"
 #include "defs.h"
+#include "freecmd.h"
 #include "parsing.h"
 #include "printstatus.h"
 #include "types.h"
 #include "utils.h"
 #include <linux/limits.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 // sets "key" with the key part of "arg"
 // and null-terminates it
@@ -207,6 +209,7 @@ handle_pipes(struct pipecmd *pipe_cmd)
 	pid_t pid_left = fork();
 
 	if (pid_left == 0) {
+		setpgid(0, 0);
 		close(fds[READ]);
 		dup2(fds[WRITE], STDOUT_FILENO);
 		close(fds[WRITE]);
@@ -224,6 +227,7 @@ handle_pipes(struct pipecmd *pipe_cmd)
 	pid_t pid_right = fork();
 
 	if (pid_right == 0) {
+		setpgid(0, 0);
 		close(fds[WRITE]);
 		dup2(fds[READ], STDIN_FILENO);
 		close(fds[READ]);
@@ -249,19 +253,17 @@ handle_pipes(struct pipecmd *pipe_cmd)
 
 	if (waitpid(pid_left, &status, 0) != -1) {
 		print_status_info(pipe_cmd->leftcmd);
-		if (WEXITSTATUS(status) == 1) {
-			exit_status = EXIT_FAILURE;
-		}
 	}
 
 	if (waitpid(pid_right, &status, 0) != -1) {
 		if (!is_pipe) {
 			print_status_info(pipe_cmd->rightcmd);
 		}
-		if (WEXITSTATUS(status) == 1) {
+		if (status != 0) {
 			exit_status = EXIT_FAILURE;
 		}
 	}
+
 	return exit_status;
 }
 
@@ -292,8 +294,10 @@ exec_cmd(struct cmd *cmd)
 	case BACK: {
 		// runs a command in background
 		back_cmd = (struct backcmd *) cmd;
-		execute_cmd((struct execcmd *) back_cmd->c);
+		exec_cmd = (struct execcmd *) back_cmd->c;
 		free(back_cmd);
+
+		execute_cmd(exec_cmd);
 		break;
 	}
 

@@ -1,6 +1,8 @@
+#include <stdlib.h>
 #include <unistd.h>
 
 #include "printstatus.h"
+#include "utils.h"
 
 // prints information of process' status
 void
@@ -8,8 +10,11 @@ print_status_info(struct cmd *cmd)
 {
 	const char *action;
 
-	if (strlen(cmd->scmd) == 0 || cmd->type == PIPE)
+	if (strlen(cmd->scmd) == 0 || cmd->type == PIPE) {
+		if (WIFEXITED(status))
+			status = WEXITSTATUS(status);
 		return;
+	}
 
 	if (WIFEXITED(status)) {
 		action = "exited";
