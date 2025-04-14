@@ -57,8 +57,8 @@ get_environ_value(char *arg, char *value, int idx)
 static void
 set_environ_vars(char **eargv, int eargc)
 {
-	char key[1024];
-	char value[1024];
+	char key[BUFLEN];
+	char value[BUFLEN];
 
 	for (int i = 0; i < eargc; i++) {
 		get_environ_key(eargv[i], key);

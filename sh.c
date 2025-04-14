@@ -16,9 +16,7 @@ signal_handler(int signo)
 	pid_t pid;
 
 	while ((pid = waitpid(0, &status, WNOHANG)) > 0) {
-		char str[1024] = { 0 };
-		snprintf(str, sizeof(str), "\nENDED ==> PID: %d\n", pid);
-		write(STDOUT_FILENO, str, strlen(str));
+		print_back_return(pid);
 	}
 }
 

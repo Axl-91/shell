@@ -2,6 +2,7 @@
 #include <unistd.h>
 
 #include "printstatus.h"
+#include "defs.h"
 #include "utils.h"
 
 // prints information of process' status
@@ -50,5 +51,22 @@ print_back_info(struct cmd *back)
 	if (isatty(1)) {
 		fprintf(stdout, "%s  [PID=%d] %s\n", COLOR_BLUE, back->pid, COLOR_RESET);
 	}
+#endif
+}
+
+
+// prints info when a background process finishes
+void
+print_back_return(int pid)
+{
+#ifndef SHELL_NO_INTERACTIVE
+	char str[BUFLEN] = { 0 };
+	snprintf(str,
+	         sizeof(str),
+	         "%s [ENDED ==> PID: %d] %s\n",
+	         COLOR_BLUE,
+	         pid,
+	         COLOR_RESET);
+	write(STDOUT_FILENO, str, strlen(str));
 #endif
 }

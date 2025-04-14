@@ -1,6 +1,5 @@
 #include "builtin.h"
 #include "defs.h"
-#include "utils.h"
 #include <linux/limits.h>
 #include <stdbool.h>
 #include <string.h>
