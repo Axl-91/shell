@@ -1,7 +1,9 @@
 #ifndef DEFS_H
 #define DEFS_H
 
+#if defined(__linux__) && !defined(_GNU_SOURCE)
 #define _GNU_SOURCE
+#endif
 
 #include <stdio.h>
 #include <stdbool.h>

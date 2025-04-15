@@ -1,4 +1,5 @@
 #include "parsing.h"
+#include "defs.h"
 #include "printstatus.h"
 #include "utils.h"
 #include <stdio.h>
@@ -110,7 +111,7 @@ expand_environ_var(char *arg)
 		char *env_var = getenv(arg + 1);
 		if (!env_var) {
 			if (arg[1] == '?' && arg[2] == '\0') {
-				char status_str[255];
+				char status_str[BUFLEN];
 				sprintf(status_str, "%d", status);
 
 				arg = (char *) realloc(arg,
