@@ -285,8 +285,6 @@ exec_cmd(struct cmd *cmd)
 	switch (cmd->type) {
 	case EXEC:
 		// spawns a command
-		//
-		// Your code here
 		exec_cmd = (struct execcmd *) cmd;
 		execute_cmd(exec_cmd);
 		break;
