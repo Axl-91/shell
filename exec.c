@@ -1,13 +1,4 @@
 #include "exec.h"
-#include "defs.h"
-#include "freecmd.h"
-#include "parsing.h"
-#include "printstatus.h"
-#include "types.h"
-#include "utils.h"
-#include <linux/limits.h>
-#include <stdlib.h>
-#include <unistd.h>
 
 // sets "key" with the key part of "arg"
 // and null-terminates it
