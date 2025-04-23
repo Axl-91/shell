@@ -140,7 +140,7 @@ is_err_redir_first(char *command_str)
 	return err_pos < out_pos;
 }
 
-void
+static void
 redir_stdin(struct execcmd *redir_cmd)
 {
 	// Flags for input files (read only, close on exec).
@@ -152,7 +152,7 @@ redir_stdin(struct execcmd *redir_cmd)
 	}
 }
 
-void
+static void
 redir_stdout(struct execcmd *redir_cmd)
 {
 	// Flags for output files (write only, create if not exist, truncate, close on exec).
@@ -164,7 +164,7 @@ redir_stdout(struct execcmd *redir_cmd)
 	}
 }
 
-void
+static void
 redir_stderr(struct execcmd *redir_cmd)
 {
 	// Flags for error files (write only, create if not exist, close on exec).
