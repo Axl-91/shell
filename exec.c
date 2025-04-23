@@ -1,4 +1,5 @@
 #include "exec.h"
+#include "types.h"
 
 // sets "key" with the key part of "arg"
 // and null-terminates it
@@ -140,53 +141,65 @@ is_err_redir_first(char *command_str)
 }
 
 void
-redirect_fds(struct execcmd *redir_cmd)
+redir_stdin(struct execcmd *redir_cmd)
 {
-	char *file;
-	// Flags for output files (write only, create if not exist, truncate, close on exec).
-	int out_flags = O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC;
 	// Flags for input files (read only, close on exec).
 	int in_flags = O_RDONLY | O_CLOEXEC;
+
+	if (execute_redir(redir_cmd->in_file, STDIN_FILENO, in_flags) == -1) {
+		free_command((struct cmd *) redir_cmd);
+		exit(EXIT_FAILURE);
+	}
+}
+
+void
+redir_stdout(struct execcmd *redir_cmd)
+{
+	// Flags for output files (write only, create if not exist, truncate, close on exec).
+	int out_flags = O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC;
+
+	if (execute_redir(redir_cmd->out_file, STDOUT_FILENO, out_flags) == -1) {
+		free_command((struct cmd *) redir_cmd);
+		exit(EXIT_FAILURE);
+	}
+}
+
+void
+redir_stderr(struct execcmd *redir_cmd)
+{
 	// Flags for error files (write only, create if not exist, close on exec).
 	int err_flags = O_WRONLY | O_CREAT | O_CLOEXEC;
 
+	if (execute_redir(redir_cmd->err_file, STDERR_FILENO, err_flags) == -1) {
+		free_command((struct cmd *) redir_cmd);
+		exit(EXIT_FAILURE);
+	}
+}
+
+void
+redirect_fds(struct execcmd *redir_cmd)
+{
 	// There is a redirection for stdin
 	if (strlen(redir_cmd->in_file) > 0) {
-		file = redir_cmd->in_file;
-		if (execute_redir(file, STDIN_FILENO, in_flags) == -1) {
-			free_command((struct cmd *) redir_cmd);
-			exit(EXIT_FAILURE);
-		}
+		redir_stdin(redir_cmd);
 	}
 
+	// There is a redirection for stderr first
 	if (is_err_redir_first(redir_cmd->scmd)) {
-		// There is a redirection for stderr
 		if (strlen(redir_cmd->err_file) > 0) {
-			file = redir_cmd->err_file;
-			if (execute_redir(file, STDERR_FILENO, err_flags) == -1) {
-				free_command((struct cmd *) redir_cmd);
-				exit(EXIT_FAILURE);
-			}
+			redir_stderr(redir_cmd);
 		}
 	}
 
 	// There is a redirection for stdout
 	if (strlen(redir_cmd->out_file) > 0) {
-		file = redir_cmd->out_file;
-		if (execute_redir(file, STDOUT_FILENO, out_flags) == -1) {
-			free_command((struct cmd *) redir_cmd);
-			exit(EXIT_FAILURE);
-		}
+		redir_stdout(redir_cmd);
 	}
 
+	// There is a redirection for stderr last
 	if (!is_err_redir_first(redir_cmd->scmd)) {
-		// There is a redirection for stderr
 		if (strlen(redir_cmd->err_file) > 0) {
-			file = redir_cmd->err_file;
-			if (execute_redir(file, STDERR_FILENO, err_flags) == -1) {
-				free_command((struct cmd *) redir_cmd);
-				exit(EXIT_FAILURE);
-			}
+			redir_stderr(redir_cmd);
 		}
 	}
 }
