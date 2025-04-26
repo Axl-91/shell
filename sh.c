@@ -6,6 +6,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/wait.h>
+#include <termios.h>
+
+struct termios saved_attributes;
 
 char prompt[PRMTLEN] = { 0 };
 
@@ -33,7 +36,7 @@ run_shell()
 	sigemptyset(&sa.sa_mask);
 
 	if (sigaction(SIGCHLD, &sa, NULL) == -1) {
-		perror("sigaction");
+		perror("Sigaction Error");
 		exit(1);
 	}
 
@@ -58,9 +61,41 @@ init_shell()
 	}
 }
 
+static void
+reset_input_mode()
+{
+	tcsetattr(STDIN_FILENO, TCSANOW, &saved_attributes);
+}
+
+
+static void
+set_input_mode()
+{
+#ifdef SHELL_NO_CANONICAL
+	struct termios tattr;
+
+	if (!isatty(STDIN_FILENO)) {
+		fprintf(stderr, "Not a terminal.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	// Save the terminal attributes so we can restore them later
+	tcgetattr(STDIN_FILENO, &saved_attributes);
+	atexit(reset_input_mode);
+
+	tcgetattr(STDIN_FILENO, &tattr);
+	tattr.c_lflag &= ~(ICANON | ECHO);
+	tattr.c_cc[VMIN] = 1;
+	tattr.c_cc[VTIME] = 0;
+	tcsetattr(STDIN_FILENO, TCSAFLUSH, &tattr);
+#endif
+}
+
 int
 main(void)
 {
+	set_input_mode();
+
 	init_shell();
 
 	run_shell();
