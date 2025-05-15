@@ -12,7 +12,6 @@ $(EXEC): $(OBJS)
 
 no_canonical: CFLAGS += -DSHELL_NO_CANONICAL
 no_canonical: clean $(EXEC)
-	./$(EXEC)
 	
 valgrind: $(EXEC)
 	valgrind --leak-check=full --show-leak-kinds=all ./$(EXEC)

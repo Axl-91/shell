@@ -5,7 +5,11 @@
 ## Compile
 
 ```bash
+# for canonical shell
 make
+
+# for no canonical shell
+make no_canonical
 ```
 
 ## Run Shell
